@@ -26,11 +26,7 @@ async function getBearerToken(): Promise<string> {
 }
 
 async function main() {
-  console.error("Starting BigQuery MCP server...");
-  console.error("Project: " + PROJECT_ID + ", Dataset: " + DATASET_ID);
-
-  const expectedToken = await getBearerToken();
-  console.error("Bearer token loaded from Secret Manager");
+  console.error("Initializing BigQuery MCP server...");
 
   const repository = new BigQueryRepository({ projectId: PROJECT_ID, datasetId: DATASET_ID });
   const service = new BigQueryService(repository);
@@ -59,25 +55,36 @@ async function main() {
       return;
     }
 
-    const authHeader = req.headers["authorization"] || "";
-    const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
-    if (token !== expectedToken) {
-      res.writeHead(401, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ error: "Unauthorized" }));
-      return;
-    }
+    try {
+      const expectedToken = await getBearerToken();
+      const authHeader = req.headers["authorization"] || "";
+      const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+      
+      if (token !== expectedToken) {
+        res.writeHead(401, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ error: "Unauthorized" }));
+        return;
+      }
 
-    const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined });
-    await server.connect(transport);
-    await transport.handleRequest(req, res);
+      const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined });
+      await server.connect(transport);
+      await transport.handleRequest(req, res);
+    } catch (error) {
+      console.error("Request error:", error);
+      res.writeHead(500);
+      res.end("Internal Server Error");
+    }
   });
 
   httpServer.listen(PORT, () => {
     console.error("MCP server listening on port " + PORT);
   });
+
+  // Warm up token cache in background
+  getBearerToken().catch(err => console.error("Failed to pre-fetch bearer token:", err));
 }
 
 main().catch((err) => {
-  console.error("Fatal error:", err);
+  console.error("Fatal error during startup:", err);
   process.exit(1);
 });
