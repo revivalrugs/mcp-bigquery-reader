@@ -25,22 +25,24 @@ async function getBearerToken(): Promise<string> {
   return cachedBearerToken;
 }
 
-async function main() {
-  console.error("Initializing BigQuery MCP server...");
-
+// Factory function to create a fresh server per request (safer for this transport)
+function createServer() {
   const repository = new BigQueryRepository({ projectId: PROJECT_ID, datasetId: DATASET_ID });
   const service = new BigQueryService(repository);
-  
   const server = new McpServer({
     name: "bigquery-mcp",
     version: "1.0.0",
   });
-
   registerBigQueryTools(server, service, { 
     projectId: PROJECT_ID, 
     datasetId: DATASET_ID, 
     maxBytesBilled: MAX_BYTES_BILLED 
   });
+  return server;
+}
+
+async function main() {
+  console.error("Starting BigQuery MCP server (TS Bundled)...");
 
   const httpServer = http.createServer(async (req, res) => {
     if (req.method === "GET" && req.url === "/health") {
@@ -61,18 +63,24 @@ async function main() {
       const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
       
       if (token !== expectedToken) {
+        console.error("Unauthorized: Token mismatch");
         res.writeHead(401, { "Content-Type": "application/json" });
         res.end(JSON.stringify({ error: "Unauthorized" }));
         return;
       }
 
       const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined });
+      const server = createServer();
       await server.connect(transport);
       await transport.handleRequest(req, res);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Request error:", error);
-      res.writeHead(500);
-      res.end("Internal Server Error");
+      res.writeHead(500, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ 
+        error: "Internal Server Error", 
+        message: error.message, 
+        stack: error.stack 
+      }));
     }
   });
 
@@ -80,11 +88,10 @@ async function main() {
     console.error("MCP server listening on port " + PORT);
   });
 
-  // Warm up token cache in background
-  getBearerToken().catch(err => console.error("Failed to pre-fetch bearer token:", err));
+  getBearerToken().catch(err => console.error("Token warm-up failed:", err));
 }
 
 main().catch((err) => {
-  console.error("Fatal error during startup:", err);
+  console.error("Fatal startup error:", err);
   process.exit(1);
 });
