@@ -3,10 +3,13 @@
   "version": "1.0.0",
   "description": "BigQuery MCP server for Claude Team - Revival Rugs",
   "type": "module",
-  "main": "server.js",
+  "main": "dist/index.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node --watch server.js"
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "watch": "tsc -w",
+    "bundle": "esbuild src/index.ts --bundle --platform=node --format=esm --outfile=dist/index.js --target=node20 --banner:js=\"import { createRequire } from \\\"module\\\"; const require = createRequire(import.meta.url);\""
   },
   "dependencies": {
     "@google-cloud/bigquery": "^7.9.0",
@@ -16,5 +19,12 @@
   },
   "engines": {
     "node": ">=20"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.6.0",
+    "esbuild": "^0.28.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^6.0.3"
   }
 }
