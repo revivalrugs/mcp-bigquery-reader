@@ -1,0 +1,35 @@
+{
+  "manifest_version": "0.3",
+  "name": "revival-bigquery-reader",
+  "display_name": "Revival BigQuery",
+  "version": "1.0.0",
+  "description": "Read-only access to Revival's BigQuery data warehouse",
+  "long_description": "Read-only BigQuery access for Revival Rugs analytics. Lists tables, previews data, and runs SELECT queries against the Revival data warehouse via a remote MCP server.",
+  "author": {
+    "name": "Revival Rugs"
+  },
+  "license": "UNLICENSED",
+
+  "server": {
+    "type": "node",
+    "entry_point": "node_modules/mcp-remote/dist/proxy.js",
+    "mcp_config": {
+      "command": "node",
+      "args": [
+        "${__dirname}/node_modules/mcp-remote/dist/proxy.js",
+        "https://mcp-bigquery-reader-60108057361.us-central1.run.app/mcp",
+        "--header",
+        "Authorization:Bearer ${TOKEN}",
+        "--transport",
+        "http-only"
+      ]
+    }
+  },
+  "compatibility": {
+    "platforms": [
+      "darwin",
+      "win32",
+      "linux"
+    ]
+  }
+}

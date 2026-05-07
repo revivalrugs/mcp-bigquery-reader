@@ -1,0 +1,9 @@
+{
+  "name": "revival-bigquery-mcp",
+  "version": "1.0.0",
+  "description": "BigQuery MCP connector for Revival Rugs",
+  "private": true,
+  "dependencies": {
+    "mcp-remote": "^0.1.18"
+  }
+}
