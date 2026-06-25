@@ -9,7 +9,7 @@ import { registerBigQueryTools } from "./modules/bigquery/bigquery.tools.js";
 const PORT = parseInt(process.env.PORT || "8080");
 const PROJECT_ID = process.env.PROJECT_ID || "revival-rugs-shopify";
 const DATASET_ID = process.env.DATASET_ID || "revival_ai_data";
-const BEARER_TOKEN_SECRET = process.env.BEARER_TOKEN_SECRET || "bq-mcp-bearer-token";
+const BEARER_TOKEN_SECRET = process.env.BEARER_TOKEN_SECRET || "mcp-bq-auth-token";
 const MAX_BYTES_BILLED = parseInt(process.env.MAX_BYTES_BILLED || String(1 * 1024 * 1024 * 1024));
 
 let cachedBearerToken: string | null = null;
