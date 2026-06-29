@@ -11,6 +11,7 @@ const PROJECT_ID = process.env.PROJECT_ID || "revival-rugs-shopify";
 const DATASET_ID = process.env.DATASET_ID || "revival_ai_data";
 const BEARER_TOKEN_SECRET = process.env.BEARER_TOKEN_SECRET || "mcp-bq-auth-token";
 const MAX_BYTES_BILLED = parseInt(process.env.MAX_BYTES_BILLED || String(1 * 1024 * 1024 * 1024));
+const ALLOW_DATASET_OVERRIDE = process.env.ALLOW_DATASET_OVERRIDE === "true";
 
 let cachedBearerToken: string | null = null;
 
@@ -56,7 +57,7 @@ async function main() {
 
       const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined });
       const server = new McpServer({ name: "bigquery-mcp", version: "1.0.0" });
-      registerBigQueryTools(server, service, { projectId: PROJECT_ID, datasetId: DATASET_ID, maxBytesBilled: MAX_BYTES_BILLED });
+      registerBigQueryTools(server, service, { projectId: PROJECT_ID, datasetId: DATASET_ID, maxBytesBilled: MAX_BYTES_BILLED, allowDatasetOverride: ALLOW_DATASET_OVERRIDE });
       await server.connect(transport);
       await transport.handleRequest(req, res);
     } catch (error: any) {

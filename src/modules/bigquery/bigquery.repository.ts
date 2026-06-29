@@ -14,14 +14,22 @@ export class BigQueryRepository {
     this.datasetId = config.datasetId;
   }
 
-  async listTables() {
-    const [tables] = await this.client.dataset(this.datasetId).getTables();
+  async listTables(datasetId?: string) {
+    const [tables] = await this.client.dataset(datasetId ?? this.datasetId).getTables();
     return tables;
   }
 
-  async getTableMetadata(tableId: string): Promise<TableMetadata> {
-    const [metadata] = await this.client.dataset(this.datasetId).table(tableId).getMetadata();
+  async getTableMetadata(tableId: string, datasetId?: string): Promise<TableMetadata> {
+    const [metadata] = await this.client.dataset(datasetId ?? this.datasetId).table(tableId).getMetadata();
     return metadata;
+  }
+
+  async previewRows(tableId: string, limit: number, datasetId?: string) {
+    const [rows] = await this.client
+      .dataset(datasetId ?? this.datasetId)
+      .table(tableId)
+      .getRows({ maxResults: limit });
+    return rows;
   }
 
   async runQuery(sql: string, maxBytesBilled: string) {
