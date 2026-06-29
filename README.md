@@ -25,10 +25,10 @@ revival-rugs-shopify.revival_ai_data
 
 | Tool | Description |
 |---|---|
-| `list_tables` | Lists all tables/views in the dataset with row counts |
+| `list_tables` | Lists all tables/views in the dataset |
 | `get_table_schema` | Returns full schema for a specific table |
 | `query` | Runs a read-only SQL query (1GB max bytes billed) |
-| `preview_table` | Returns first N rows of a table (max 100) |
+| `preview_table` | Returns first N rows of a table (max 100) — works on tables only, not views; use `query` for views |
 
 ## How Auth Works
 
@@ -93,26 +93,68 @@ chmod +x deploy.sh
 The current deployment is:
 `https://mcp-bigquery-reader-60108057361.us-central1.run.app/mcp`
 
+## Deployment Modes
+
+The same image powers two kinds of deployment — they differ only by the
+`ALLOW_DATASET_OVERRIDE` env var, never by code. No forks, no second repo.
+
+| | Locked (org-wide) | Flexible (team) |
+|---|---|---|
+| `ALLOW_DATASET_OVERRIDE` | unset → `false` | `true` |
+| `dataset_id` tool param | not registered | optional, on the read tools |
+| Behaviour | locked to `DATASET_ID` | switch datasets at runtime, or change `DATASET_ID` in Cloud Run |
+| Who gets it | the whole organization | one team, via a separate connector + token |
+
+- **Locked** is the default and the fail-safe: any value other than the exact
+  string `true` keeps the override off, so the org-wide server stays pinned to
+  `DATASET_ID` and the model never sees `dataset_id`.
+- **Flexible** lets the team point `list_tables`, `get_table_schema`, and
+  `preview_table` at any dataset **the service account can read**. The `query`
+  tool already works cross-dataset via fully-qualified SQL, so it takes no
+  `dataset_id`.
+
+> **Note:** the lock is enforced at the app layer, not by IAM. The shared
+> service account has project-wide `bigquery.dataViewer`, so even on a locked
+> server the `query` tool can reach other datasets via raw SQL. To make the
+> lock airtight, scope that server's service account to a single dataset.
+
 ## Claude Team Setup
 
 This is a Claude Team project: the connector is added **once** for the whole
 organization, and every member picks it up automatically — no per-user GCP or
 `gcloud` setup.
 
-The packaged connector lives in
-[claude_extension/](claude_extension/) (`mcp-bigquery-extension.mcpb`). It is a
-thin `mcp-remote` proxy that forwards to the Cloud Run `/mcp` endpoint with the
-org bearer token attached. See
-[claude_extension/manifest.json](claude_extension/manifest.json) for the exact
-URL and header it sends.
+Each deployment gets its own `.dxt` extension package — a thin `mcp-remote`
+proxy that forwards to the Cloud Run endpoint with a hardcoded bearer token.
+The `.dxt` is **not committed to the repo** (token inside); it is built locally
+and distributed directly to the Claude Team admin console.
 
-To roll it out:
+| | Org-wide | Data team |
+|---|---|---|
+| Server URL | `https://mcp-bigquery-reader-60108057361.us-central1.run.app/mcp` | `https://mcp-bigquery-data-data-team-60108057361.us-central1.run.app/mcp` |
+| Token secret | `mcp-bq-auth-token` | `mcp-bq-auth-token-data-team` |
+| Setup script | `deploy.sh` | `deploy-team.sh` |
 
-1. Register the connector once in the Claude Team admin console (Connectors /
-   Integrations), pointing at `<service-url>/mcp` with **Bearer token** auth and
-   the token from `deploy.sh`.
-2. It becomes available to all team members; each installs it and shares the
-   same org-wide token.
+To build a `.dxt` for a deployment:
+
+```bash
+cd claude_extension
+# 1. Set the correct URL and token in manifest.json
+# 2. Install dependencies
+npm install
+# 3. Pack
+zip -r mcp-bigquery-extension.dxt manifest.json package.json node_modules/
+```
+
+`manifest.json` in the repo contains a `YOUR_TOKEN_HERE` placeholder — fill in
+the real token (from Secret Manager) before building, and never commit the
+filled-in version.
+
+To roll out to a team:
+
+1. Build the `.dxt` as above (correct URL + token).
+2. Upload it once in the Claude Team admin console (Connectors / Integrations).
+3. Team members install it in Claude Desktop — no per-user GCP setup needed.
 
 If you lose the token, read it back from Secret Manager:
 
