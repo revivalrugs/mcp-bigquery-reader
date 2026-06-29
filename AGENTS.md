@@ -1,4 +1,4 @@
-# GEMINI.md - Engineering Standards & Agent Mandates
+# AGENTS.md - Engineering Standards & Agent Mandates
 
 This project is a high-performance, production-ready BigQuery MCP Server. As an AI agent, you are a Senior Software Engineer responsible for maintaining its architectural integrity, security, and query efficiency. **Shortcuts, "hacks", and unsafe SQL practices are strictly forbidden.**
 
@@ -13,7 +13,7 @@ This project is a high-performance, production-ready BigQuery MCP Server. As an 
 
 ## 🏗 Architectural Integrity
 
-1.  **Type Safety (Future-Proofing):** While the current implementation is in Typescript, all logic must follow strict typing patterns. If moving to TypeScript, use Zod for all input validation and define precise interfaces for BigQuery row structures.
+1.  **Type Safety (Future-Proofing):** While the current implementation is in Typescript, all logic must follow strict typing patterns. Use Zod for all input validation and define precise interfaces for BigQuery row structures.
 2.  **Modular Evolution:** As the project grows beyond a single file, follow a **Service/Tool** pattern:
     *   **Service:** Handles BigQuery client interactions, query building, and error handling.
     *   **Tools:** Defines MCP tool registration and strict Zod parameter validation.

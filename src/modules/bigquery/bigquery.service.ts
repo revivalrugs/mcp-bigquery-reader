@@ -34,9 +34,8 @@ export class BigQueryService {
     return rows; 
   }
 
-  async preview(tableId: string, projectId: string, datasetId: string, limit: number, maxBytesBilled: number) {
+  async preview(tableId: string, limit: number) {
     const safeLimit = Math.min(limit, 100);
-    const sql = `SELECT * FROM \`..%s\` LIMIT 0`;
-    return await this.repository.runQuery(sql, String(maxBytesBilled));
+    return await this.repository.previewRows(tableId, safeLimit);
   }
 }

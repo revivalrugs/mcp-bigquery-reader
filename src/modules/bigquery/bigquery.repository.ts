@@ -24,6 +24,14 @@ export class BigQueryRepository {
     return metadata;
   }
 
+  async previewRows(tableId: string, limit: number) {
+    const [rows] = await this.client
+      .dataset(this.datasetId)
+      .table(tableId)
+      .getRows({ maxResults: limit });
+    return rows;
+  }
+
   async runQuery(sql: string, maxBytesBilled: string) {
     const options = {
       query: sql,

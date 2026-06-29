@@ -61,7 +61,7 @@ export function registerBigQueryTools(server: McpServer, service: BigQueryServic
     },
     async ({ table_id, limit = 10 }) => {
       try {
-        const rows = await service.preview(table_id, config.projectId, config.datasetId, limit, config.maxBytesBilled);
+        const rows = await service.preview(table_id, limit);
         return toText(JSON.stringify(rows, null, 2));
       } catch (error) {
         return toError(error);
