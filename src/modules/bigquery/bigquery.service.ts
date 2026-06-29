@@ -3,8 +3,8 @@ import { BigQueryRepository } from "./bigquery.repository.js";
 export class BigQueryService {
   constructor(private repository: BigQueryRepository) {}
 
-  async listTablesFormatted() {
-    const tables = await this.repository.listTables();
+  async listTablesFormatted(datasetId?: string) {
+    const tables = await this.repository.listTables(datasetId);
     return tables.map((t: any) => ({
       table_id: t.id,
       type: t.metadata?.type,
@@ -14,8 +14,8 @@ export class BigQueryService {
     }));
   }
 
-  async getTableSchemaFormatted(tableId: string) {
-    const metadata = await this.repository.getTableMetadata(tableId);
+  async getTableSchemaFormatted(tableId: string, datasetId?: string) {
+    const metadata = await this.repository.getTableMetadata(tableId, datasetId);
     const schema = metadata.schema?.fields || [];
     return {
       table_id: tableId,
@@ -34,8 +34,8 @@ export class BigQueryService {
     return rows; 
   }
 
-  async preview(tableId: string, limit: number) {
+  async preview(tableId: string, limit: number, datasetId?: string) {
     const safeLimit = Math.min(limit, 100);
-    return await this.repository.previewRows(tableId, safeLimit);
+    return await this.repository.previewRows(tableId, safeLimit, datasetId);
   }
 }

@@ -130,6 +130,7 @@ gcloud secrets versions access latest \
 | `DATASET_ID` | `revival_ai_data` | BigQuery dataset to expose |
 | `BEARER_TOKEN_SECRET` | `mcp-bq-auth-token` | Secret Manager secret name |
 | `MAX_BYTES_BILLED` | `1073741824` (1GB) | Max bytes billed per query |
+| `ALLOW_DATASET_OVERRIDE` | _(unset → `false`)_ | When `true`, the read tools expose an optional `dataset_id` to switch datasets at runtime (see [Deployment Modes](#deployment-modes)) |
 | `PORT` | `8080` | HTTP port (set automatically by Cloud Run) |
 
 ## Health Check

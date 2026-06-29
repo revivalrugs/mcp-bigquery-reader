@@ -5,7 +5,7 @@ This project is a high-performance, production-ready BigQuery MCP Server. As an 
 ## 🎯 The "No-Shortcuts" Philosophy
 
 1.  **Read-Only Integrity:** Never attempt to implement tools that modify data. All BigQuery operations *must* be strictly read-only.
-2.  **Dataset Scoping:** All queries and tools must be scoped to the `revival_ai_data` dataset. Always use fully qualified table names: `revival-rugs-shopify.revival_ai_data.table_name`.
+2.  **Dataset Scoping:** Tools default to the dataset in the `DATASET_ID` env var. When `ALLOW_DATASET_OVERRIDE=true` (opt-in, per-deployment), the read tools (`list_tables`, `get_table_schema`, `preview_table`) accept an optional `dataset_id` to target another dataset within the project; when unset (default) the tools stay locked to `DATASET_ID`. Always use fully qualified table names in SQL: `revival-rugs-shopify.<dataset>.table_name`.
 3.  **Cost & Performance Safety:** 
     *   Every query tool must respect the `MAX_BYTES_BILLED` limit (default 1GB). 
     *   Never perform `SELECT *` on large tables without a `LIMIT` clause or specific column filtering.
