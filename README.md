@@ -27,7 +27,7 @@ revival-rugs-shopify.revival_ai_data
 |---|---|
 | `list_tables` | Lists all tables/views in the dataset |
 | `get_table_schema` | Returns full schema for a specific table |
-| `query` | Runs a read-only SQL query (1GB max bytes billed) |
+| `query` | Runs a read-only SQL query (bytes billed capped at `MAX_BYTES_BILLED`) |
 | `preview_table` | Returns first N rows of a table (max 100) — works on tables only, not views; use `query` for views |
 
 ## How Auth Works
@@ -171,7 +171,7 @@ gcloud secrets versions access latest \
 | `PROJECT_ID` | `revival-rugs-shopify` | GCP project ID |
 | `DATASET_ID` | `revival_ai_data` | BigQuery dataset to expose |
 | `BEARER_TOKEN_SECRET` | `mcp-bq-auth-token` | Secret Manager secret name |
-| `MAX_BYTES_BILLED` | `1073741824` (1GB) | Max bytes billed per query |
+| `MAX_BYTES_BILLED` | `1073741824` (1GB) | Hard cap on bytes billed per query; a per-call `max_bytes_billed` can only lower it |
 | `ALLOW_DATASET_OVERRIDE` | _(unset → `false`)_ | When `true`, the read tools expose an optional `dataset_id` to switch datasets at runtime (see [Deployment Modes](#deployment-modes)) |
 | `PORT` | `8080` | HTTP port (set automatically by Cloud Run) |
 
