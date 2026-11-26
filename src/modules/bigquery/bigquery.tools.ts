@@ -59,12 +59,14 @@ export function registerBigQueryTools(
       sql: z.string().describe("A read-only BigQuery SQL query"),
       max_bytes_billed: z
         .number()
+        .int()
+        .positive()
         .optional()
-        .describe("Maximum bytes billed. Defaults to 1GB"),
+        .describe(`Maximum bytes billed. Defaults to and is capped at ${config.maxBytesBilled} bytes`),
     },
     async ({ sql, max_bytes_billed }) => {
       try {
-        const rows = await service.query(sql, max_bytes_billed || config.maxBytesBilled);
+        const rows = await service.query(sql, Math.min(max_bytes_billed ?? config.maxBytesBilled, config.maxBytesBilled));
         return toText(JSON.stringify(rows, null, 2));
       } catch (error) {
         return toError(error);
